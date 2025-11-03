@@ -11,22 +11,22 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('Agg')
-import matplotlib.font_manager as fm # ← フォントマネージャをインポート
+# ★ 日本語化ライブラリは /analysis ルート内でimportします
 # ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 # --- 初期設定 ---
 app = Flask(__name__)
-# ★ Renderの環境変数に 'SECRET_KEY' を設定することを推奨
+# ★ Render/PythonAnywhereの環境変数に 'SECRET_KEY' を設定することを推奨
 app.secret_key = os.environ.get('SECRET_KEY', 'your_very_secret_key_12345')
 static_dir = os.path.join(os.getcwd(), 'static')
 os.makedirs(static_dir, exist_ok=True)
 
 # --- データベース接続設定 ---
 try:
-    # ★ Renderの Secret File に 'credentials.json' を設定
+    # ★ サーバーの 'credentials.json' を設定
     gc = gspread.service_account(filename="credentials.json")
     
-    # ★ Renderの環境変数に 'SPREADSHEET_URL' を設定
+    # ★ サーバーの環境変数に 'SPREADSHEET_URL' を設定
     SPREADSHEET_URL = os.environ.get('SPREADSHEET_URL', 'https://docs.google.com/spreadsheets/d/1JSYqnPOPThXRWTsWPwogfFPRbVmeuSA1IP18ItNaUq0/edit')
     
     ss = gc.open_by_url(SPREADSHEET_URL)
@@ -41,7 +41,6 @@ try:
 
 except Exception as e:
     print(f"【致命的エラー】データベースの読み込みに失敗: {e}")
-    # サーバー起動時に失敗した場合は、アプリが起動しないように例外を送出
     raise e
 # --- 接続設定ここまで ---
 
@@ -53,7 +52,7 @@ except Exception as e:
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
-        if username: # 簡単なバリデーション
+        if username:
             session['username'] = username
             return redirect(url_for('home'))
     return render_template('login.html')
@@ -100,11 +99,8 @@ def quiz():
         q = None
         next_qid = None
         
-        # 1. 未解答の問題を優先
         if unanswered_qids:
             next_qid = random.choice(unanswered_qids)
-            
-        # 2. 全問解答済みの場合、苦手カテゴリから出題
         else:
             if not user_prof_df.empty:
                 user_prof_df['正解'] = pd.to_numeric(user_prof_df['正解'])
@@ -129,11 +125,9 @@ def quiz():
                     if weakest_qids:
                         next_qid = random.choice(weakest_qids)
 
-        # 3. フォールバック (全問題からランダム)
         if next_qid is None:
             next_qid = random.choice(list(all_qids))
             
-        # 4. 問題データを取得
         q = df[df['A列：問題番号'].astype(str) == next_qid].iloc[0]
         options = [q['G列：選択肢1'], q['H列：選択肢2'], q['I列：選択肢3'], q['J列：選択肢4']]
         random.shuffle(options)
@@ -172,7 +166,7 @@ def answer():
     return render_template('result.html', correct=is_correct, user_ans=user_ans, correct_ans=correct_ans, q_id=q_id)
 
 
-# 4. ★★★【分析ページ】（日本語フォント手動設定版）★★★
+# 4. ★★★【分析ページ】 (japanize-matplotlib を使うバージョン) ★★★
 @app.route("/analysis")
 def analysis():
     if 'username' not in session:
@@ -213,21 +207,12 @@ def analysis():
                 解答数='count'
             ).reset_index() 
         
-        # 5. ▼▼▼【グラフ生成ロジック修正】▼▼▼
+        # 5. ▼▼▼【グラフ生成ロジック (japanize-matplotlib版)】▼▼▼
         chart_url = None
         if category_stats is not None and not category_stats.empty:
             try:
-                # (1) 日本語フォントをサーバーにダウンロード
-                # Renderのサーバーは一時的なので、実行のたびにダウンロードする
-                font_path = 'NotoSansJP-Regular.otf'
-                if not os.path.exists(font_path):
-                     # 'curl' を使ってフォントをダウンロード
-                     print("日本語フォントをダウンロードします...")
-                     os.system('curl -o NotoSansJP-Regular.otf https://noto-website-2.storage.googleapis.com/pkgs/NotoSansJP-Regular.otf')
-                     print("フォントをダウンロードしました。")
-                
-                # (2) ダウンロードしたフォントを明示的に読み込む
-                fp = fm.FontProperties(fname=font_path)
+                # (1) 【重要】日本語化ライブラリをここでインポート
+                import japanize_matplotlib 
                 
                 num_categories = len(category_stats)
                 fig_height = max(4, num_categories * 0.6) 
@@ -237,12 +222,10 @@ def analysis():
                 
                 plt.barh(stats_sorted['カテゴリ'], stats_sorted['正解率'] * 100, color='#039393')
                 
-                # (3) すべてのテキスト要素にフォントを指定
-                plt.xlabel('正解率 (%)', fontproperties=fp)
-                plt.ylabel('カテゴリ', fontproperties=fp)
-                plt.title(f"{username} さんのカテゴリ別正解率", fontproperties=fp)
-                plt.yticks(fontproperties=fp) # Y軸の目盛り（カテゴリ名）
-                plt.xticks(fontproperties=fp) # X軸の目盛り（%）
+                # (2) フォント指定は不要 (japanize_matplotlibが自動化)
+                plt.xlabel('正解率 (%)')
+                plt.ylabel('カテゴリ')
+                plt.title(f"{username} さんのカテゴリ別正解率")
                 
                 plt.xlim(0, 100) 
                 plt.tight_layout() 
@@ -252,7 +235,6 @@ def analysis():
                 plt.savefig(chart_save_path)
                 plt.close() 
 
-                # キャッシュ回避のためにタイムスタンプを追加
                 chart_url = f"/static/{chart_filename}?v={datetime.now().timestamp()}"
 
             except Exception as e:
@@ -288,7 +270,6 @@ def flashcard_detail(index):
         
     total_cards = len(df)
     
-    # indexが範囲外にならないよう調整
     if index < 0:
         index = 0
     if index >= total_cards:
@@ -315,10 +296,7 @@ def flashcard_detail(index):
 def static_files(filename):
     return send_from_directory(static_dir, filename)
 
-# --- アプリの実行（RenderがGunicornを使うための設定） ---
+# --- アプリの実行 ---
 if __name__ == "__main__":
-    # Gunicornはこの 'app' 変数を自動で見つけます
-    # 以下の 'app.run' は主にローカルテスト用ですが、
-    # Renderは 'Start Command' (gunicorn app:app) を優先します
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
