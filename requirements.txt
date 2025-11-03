@@ -4,5 +4,4 @@ pandas
 markupsafe
 pytz
 matplotlib
-japanize-matplotlib
 gunicorn
