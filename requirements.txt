@@ -1,0 +1,8 @@
+flask
+gspread
+pandas
+markupsafe
+pytz
+matplotlib
+japanize-matplotlib
+gunicorn

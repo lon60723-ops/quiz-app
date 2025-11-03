@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>イディオムクイズ</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background-color: #FFFFFF;
+            color: #333;
+            padding: 2em;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h2 { color: #039393; }
+        .question-box {
+            background-color: #f9f9f9;
+            border: 1px solid #f0f0f0;
+            padding: 1.5em;
+            border-radius: 8px;
+            margin-bottom: 1.5em;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            color: #039393;
+            background-color: #FFFFFF;
+            border: 2px solid #039393;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background-color: #039393;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="question-box">
+        <h2>【問題】</h2>
+        <p style="font-size: 1.1em; font-weight: 500;">{{ q['D列：日本語'] }}</p>
+        <p style="font-size: 1.1em;"><b>{{ q['E列：英文（ヒントなし）'] }}</b></p>
+    </div>
+    <hr style="border:0; border-top: 1px solid #f0f0f0; margin: 2em 0;">
+    <form action="/answer" method="post">
+        <input type="hidden" name="correct_answer" value="{{ q['F列：解答'] }}">
+        <input type="hidden" name="question_id" value="{{ q['A列：問題番号'] }}">
+        <h3>【選択肢】</h3>
+        {% for opt in options %}
+            <button type="submit" name="user_answer" value="{{ opt }}">
+                {{ opt }}
+            </button>
+        {% endfor %}
+    </form>
+</body>
+</html>

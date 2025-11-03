@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background-color: #FFFFFF;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+            padding: 2em;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            font-weight: 700;
+            color: #039393;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-top: 1.5em;
+        }
+        button {
+            width: 85%;
+            padding: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: white;
+            background-color: #039393;
+            border: none;
+            border-radius: 8px;
+            margin-top: 1em;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        button:hover {
+            background-color: #027a7a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>学習アプリへようこそ</h2>
+        <p>あなたの名前を入力してください</p>
+        <form action="/login" method="post">
+            <input type="text" name="username" placeholder="例: Taro">
+            <br>
+            <button type="submit">学習をはじめる</button>
+        </form>
+    </div>
+</body>
+</html>
